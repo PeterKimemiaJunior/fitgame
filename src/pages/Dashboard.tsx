@@ -2,30 +2,41 @@ import { HistoryChart } from '../components/HistoryChart';
 import { MetricCard } from '../components/ui/MetricCard';
 import { HABITS_LIST } from '../types';
 import { useTodayLog } from '../hooks/useTodayLog';
-import { useTotalPoints } from '../hooks/useTotalPoints';
 import { useUserMetrics } from '../hooks/useUserMetrics';
+import { useGameProgress } from '../hooks/useGameProgress'; // Mantém
+// REMOVIDO: import { useTotalPoints } from '../hooks/useTotalPoints';
 import { useUserStore } from '../store/useUserStore';
 
 export function Dashboard() {
   const user = useUserStore((state) => state.user)!;
-  
-  // CORREÇÃO: Removido 'todayLog' pois não está sendo usado no JSX
-  const { completedIds, toggleHabit } = useTodayLog(); 
-  
-  const totalPoints = useTotalPoints();
-  const { bmi, bmr, calories, bmiLabel } = useUserMetrics();
   const logs = useUserStore((state) => state.logs);
+  
+  const { completedIds, toggleHabit } = useTodayLog();
+  const { bmi, bmr, calories, bmiLabel } = useUserMetrics();
+  const { level, streak, totalPoints } = useGameProgress(); // TotalPoints vem daqui agora
 
   return (
     <div className="min-h-screen bg-emerald-50 flex flex-col items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-md p-6 w-full max-w-md space-y-6">
         
-        {/* Header + Pontos */}
+        {/* Header + Pontos + Gamificação */}
         <div>
-          <div className="flex justify-between items-center mb-1">
-            <h1 className="text-xl font-bold text-gray-800">Olá, {user.name}</h1>
-            <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-bold">
-              {totalPoints} pts
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <p className="text-xs text-gray-400 font-semibold uppercase">Olá, {user.name}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-xs font-bold border border-indigo-200">
+                  Nível {level}
+                </span>
+                <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-xs font-bold border border-orange-200">
+                  🔥 {streak} dias
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+               <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-bold shadow-sm">
+                {totalPoints} pts
+              </div>
             </div>
           </div>
           <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">
