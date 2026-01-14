@@ -1,17 +1,16 @@
 export interface User {
   name: string;
   age: number;
-  weight: number; // em kg
-  height: number; // em cm
+  weight: number;
+  height: number;
   gender: 'male' | 'female' | 'other';
 }
 
-// Lista de hábitos pré-definidos do MVP
 export interface Habit {
   id: string;
   title: string;
   points: number;
-  icon: string; // Emoji simples
+  icon: string;
 }
 
 export const HABITS_LIST: Habit[] = [
@@ -23,5 +22,13 @@ export const HABITS_LIST: Habit[] = [
 export interface DailyLog {
   date: string; // 'YYYY-MM-DD'
   points: number;
-  completedHabits: string[]; // IDs dos hábitos marcados
+  completedHabits: string[];
+  completedChallenge: boolean; // Novo campo
+}
+
+export interface DailyChallenge {
+  id: number;
+  title: string;
+  points: number;
+  icon: string;
 }
