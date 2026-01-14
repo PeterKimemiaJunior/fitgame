@@ -1,20 +1,26 @@
 import { HistoryChart } from '../components/HistoryChart';
 import { MetricCard } from '../components/ui/MetricCard';
+import { InsightsCard } from '../components/ui/InsightsCard'; // Importar Inteligência
 import { HABITS_LIST } from '../types';
 import { useTodayLog } from '../hooks/useTodayLog';
 import { useUserMetrics } from '../hooks/useUserMetrics';
-import { useGameProgress } from '../hooks/useGameProgress'; // CORRIGIDO: Caminho relativo
-import { useUserStore } from '../store/useUserStore';
+import { useGameProgress } from '../hooks/useGameProgress';
 import { useDailyChallenge } from '../hooks/useDailyChallenge';
+import { useInsights } from '../hooks/useInsights'; // Importar Hook
+import { useUserStore } from '../store/useUserStore';
 
 export function Dashboard() {
   const user = useUserStore((state) => state.user)!;
   const logs = useUserStore((state) => state.logs);
   
+  // Gamificação & Dados
   const { completedIds, toggleHabit } = useTodayLog();
   const { bmi, bmr, calories, bmiLabel } = useUserMetrics();
   const { level, streak, totalPoints } = useGameProgress();
   const { challenge, isCompleted, toggleChallenge } = useDailyChallenge();
+  
+  // Inteligência de Produto (Fase 5)
+  const insights = useInsights();
 
   return (
     <div className="min-h-screen bg-emerald-50 flex flex-col items-center justify-center p-4">
@@ -44,6 +50,14 @@ export function Dashboard() {
             {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
         </div>
+
+        {/* INTELIGÊNCIA DE PRODUTO (Fase 5) */}
+        {insights.feedback && (
+          <InsightsCard 
+            feedback={insights.feedback} 
+            consistencyScore={insights.consistencyScore} 
+          />
+        )}
 
         {/* Cards de Métricas */}
         <div className="grid grid-cols-3 gap-2">
