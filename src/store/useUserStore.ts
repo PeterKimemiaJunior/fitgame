@@ -9,7 +9,8 @@ interface UserStore {
   setUser: (userData: User) => void;
   clearUser: () => void;
   toggleHabit: (habitId: string) => void;
-  toggleChallenge: () => void; // Nova ação
+  toggleChallenge: () => void;
+  updateDailyStats: (date: string, steps: number, calories: number) => void; // NOVO
 }
 
 function isValidUser(obj: unknown): obj is User {
@@ -56,15 +57,17 @@ export const useUserStore = create<UserStore>()(
 
         const otherLogs = state.logs.filter(log => log.date !== today);
         
-        // Mantém estado anterior do desafio se existir, senão false
-        const currentChallenge = currentLog?.completedChallenge || false;
-        const challengePoints = currentChallenge ? getTodaysChallenge().points : 0;
+        // Preservar steps/calories existentes ao atualizar hábitos
+        const currentStats = currentLog || { steps: 0, calories: 0, completedChallenge: false };
+        const challengePoints = currentStats.completedChallenge ? getTodaysChallenge().points : 0;
 
         const updatedLog: DailyLog = {
           date: today,
           points: newPoints + challengePoints,
           completedHabits: newCompletedHabits,
-          completedChallenge: currentChallenge,
+          completedChallenge: currentStats.completedChallenge,
+          steps: currentStats.steps || 0,
+          calories: currentStats.calories || 0,
         };
 
         set({ logs: [...otherLogs, updatedLog] });
@@ -75,12 +78,10 @@ export const useUserStore = create<UserStore>()(
         const state = get();
         const currentLog = state.logs.find(log => log.date === today);
         
-        // Toggle lógica
         const isCompleted = currentLog?.completedChallenge ? false : true;
         const challengeData = getTodaysChallenge();
         const challengePoints = isCompleted ? challengeData.points : 0;
 
-        // Recalcular pontos dos hábitos (para não perder soma ao toggle desafio)
         const existingHabits = currentLog?.completedHabits || [];
         const habitsPoints = existingHabits.reduce((acc, hId) => {
           const habit = HABITS_LIST.find(h => h.id === hId);
@@ -91,14 +92,42 @@ export const useUserStore = create<UserStore>()(
 
         const otherLogs = state.logs.filter(log => log.date !== today);
         
+        const currentStats = currentLog || { steps: 0, calories: 0, completedHabits: [] };
+        
         const updatedLog: DailyLog = {
           date: today,
           points: totalPoints,
           completedHabits: existingHabits,
           completedChallenge: isCompleted,
+          steps: currentStats.steps || 0,
+          calories: currentStats.calories || 0,
         };
 
         set({ logs: [...otherLogs, updatedLog] });
+      },
+
+      // NOVA AÇÃO: Atualizar Stats do Dia
+      updateDailyStats: (date: string, steps: number, calories: number) => {
+        const state = get();
+        const logs = [...state.logs];
+        const index = logs.findIndex(l => l.date === date);
+
+        if (index !== -1) {
+          // Atualiza log existente
+          logs[index] = { ...logs[index], steps, calories };
+        } else {
+          // Cria novo log (apenas stats)
+          logs.push({
+            date,
+            points: 0,
+            completedHabits: [],
+            completedChallenge: false,
+            steps,
+            calories,
+          });
+        }
+
+        set({ logs });
       },
     }),
     {
@@ -112,7 +141,6 @@ export const useUserStore = create<UserStore>()(
   )
 );
 
-// Helper para pegar o desafio do dia (determinístico)
 function getTodaysChallenge() {
   const CHALLENGES = [
     { id: 1, title: 'Beber 3L de água hoje', points: 25, icon: '💧' },

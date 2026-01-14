@@ -23,7 +23,9 @@ export interface DailyLog {
   date: string; // 'YYYY-MM-DD'
   points: number;
   completedHabits: string[];
-  completedChallenge: boolean; // Novo campo
+  completedChallenge: boolean;
+  steps: number;      // NOVO: Passos do dia
+  calories: number;   // NOVO: Calorias ingeridas
 }
 
 export interface DailyChallenge {
