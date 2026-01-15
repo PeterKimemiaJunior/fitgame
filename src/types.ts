@@ -1,9 +1,14 @@
+export type ActivityLevel = 'sedentary' | 'lightly_active' | 'moderately_active';
+export type Goal = 'maintain' | 'loss_moderate' | 'loss_aggressive';
+
 export interface User {
   name: string;
   age: number;
-  weight: number;
-  height: number;
+  weight: number; // em kg
+  height: number; // em cm
   gender: 'male' | 'female' | 'other';
+  activityLevel: ActivityLevel; // NOVO
+  goal: Goal; // NOVO
 }
 
 export interface Habit {
@@ -24,8 +29,8 @@ export interface DailyLog {
   points: number;
   completedHabits: string[];
   completedChallenge: boolean;
-  steps: number;      // NOVO: Passos do dia
-  calories: number;   // NOVO: Calorias ingeridas
+  steps: number;
+  calories: number;
 }
 
 export interface DailyChallenge {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useUserStore } from '../store/useUserStore';
-import type { User } from '../types';
+import type { User, ActivityLevel, Goal } from '../types';
 
 export function Register() {
   const setUser = useUserStore((state) => state.setUser);
@@ -10,11 +10,12 @@ export function Register() {
   const [gender, setGender] = useState('');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
+  const [activityLevel, setActivityLevel] = useState<ActivityLevel>('sedentary');
+  const [goal, setGoal] = useState<Goal>('loss_moderate');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validação simples
     if (!name || !age || !gender || !weight || !height) {
       alert('Por favor, preencha todos os campos.');
       return;
@@ -26,6 +27,8 @@ export function Register() {
       gender: gender as 'male' | 'female' | 'other',
       weight: Number(weight),
       height: Number(height),
+      activityLevel,
+      goal,
     };
 
     setUser(userData);
@@ -37,7 +40,7 @@ export function Register() {
         <header className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Bem-vindo ao FitGame</h1>
           <p className="text-sm text-gray-500 mt-2">
-            Precisamos de alguns dados básicos para personalizar sua experiência.
+            Vamos personalizar seu plano baseado no seu estilo de vida.
           </p>
         </header>
 
@@ -104,6 +107,34 @@ export function Register() {
                 placeholder="cm"
                 required
               />
+            </div>
+          </div>
+
+          {/* NOVOS CAMPOS */}
+          <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-3">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nível de Atividade</label>
+              <select
+                value={activityLevel}
+                onChange={(e) => setActivityLevel(e.target.value as ActivityLevel)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              >
+                <option value="sedentary">Sedentário (Pouco ou nenhum exercício)</option>
+                <option value="lightly_active">Levemente Ativo (1-3 dias/semana)</option>
+                <option value="moderately_active">Moderadamente Ativo (3-5 dias/semana)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Objetivo</label>
+              <select
+                value={goal}
+                onChange={(e) => setGoal(e.target.value as Goal)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              >
+                <option value="maintain">Manter Peso</option>
+                <option value="loss_moderate">Emagrecer (Moderado)</option>
+                <option value="loss_aggressive">Emagrecer (Acelerado)</option>
+              </select>
             </div>
           </div>
 

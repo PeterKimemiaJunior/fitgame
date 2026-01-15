@@ -2,21 +2,17 @@ export interface HealthMetrics {
   bmi: number;
   bmiLabel: string;
   bmr: number;
-  dailyCalories: number;
+  tdee: number; // Total Daily Energy Expenditure (TMB + Atividade)
+  targetCalories: number;
+  safeCalories: number; // Limite inferior seguro
 }
 
-/**
- * Calcula o Índice de Massa Corporal (IMC).
- */
 export function calculateBMI(weight: number, heightCm: number): number {
   const heightM = heightCm / 100;
   if (weight <= 0 || heightM <= 0) return 0;
   return parseFloat((weight / (heightM * heightM)).toFixed(1));
 }
 
-/**
- * Retorna a classificação do IMC.
- */
 export function getBMILabel(bmi: number): string {
   if (bmi === 0) return '-';
   if (bmi < 18.5) return 'Abaixo do peso';
@@ -25,9 +21,6 @@ export function getBMILabel(bmi: number): string {
   return 'Obesidade';
 }
 
-/**
- * Calcula a Taxa Metabólica Basal (TMB) - Equação de Mifflin-St Jeor.
- */
 export function calculateBMR(
   age: number,
   weight: number,
@@ -36,45 +29,53 @@ export function calculateBMR(
 ): number {
   if (age <= 0 || weight <= 0 || heightCm <= 0) return 0;
 
-  // Fórmula Masculina
   const maleFormula = 10 * weight + 6.25 * heightCm - 5 * age + 5;
-  // Fórmula Feminina
   const femaleFormula = 10 * weight + 6.25 * heightCm - 5 * age - 161;
 
   if (gender === 'male') return Math.round(maleFormula);
   if (gender === 'female') return Math.round(femaleFormula);
   
-  // Média neutra para 'other'
   return Math.round((maleFormula + femaleFormula) / 2);
 }
 
-/**
- * Calcula as calorias diárias recomendadas.
- * Fator de atividade sedentário leve (1.375).
- */
-export function calculateDailyCalories(bmr: number): number {
-  if (bmr <= 0) return 0;
-  return Math.round(bmr * 1.375);
-}
-
-/**
- * Orquestrador principal.
- */
 export function calculateHealthMetrics(
   age: number,
   weight: number,
   heightCm: number,
-  gender: 'male' | 'female' | 'other'
+  gender: 'male' | 'female' | 'other',
+  activityLevel: 'sedentary' | 'lightly_active' | 'moderately_active',
+  goal: 'maintain' | 'loss_moderate' | 'loss_aggressive'
 ): HealthMetrics {
   const bmi = calculateBMI(weight, heightCm);
   const bmiLabel = getBMILabel(bmi);
   const bmr = calculateBMR(age, weight, heightCm, gender);
-  const dailyCalories = calculateDailyCalories(bmr);
+
+  // 1. Fator de Atividade (TDEE Multiplier)
+  let activityMultiplier = 1.2; // Base sedentário
+  if (activityLevel === 'lightly_active') activityMultiplier = 1.375;
+  if (activityLevel === 'moderately_active') activityMultiplier = 1.55;
+
+  const tdee = Math.round(bmr * activityMultiplier);
+
+  // 2. Definição de Meta
+  let deficit = 0;
+  if (goal === 'loss_moderate') deficit = 500;
+  if (goal === 'loss_aggressive') deficit = 700;
+  if (goal === 'maintain') deficit = 0;
+
+  // 3. Cálculo da Meta e Limite Seguro
+  const rawTarget = tdee - deficit;
+  const targetCalories = Math.max(1000, Math.round(rawTarget)); // Mínimo absoluto de 1000
+  
+  // Regra de Ouro: Não comer menos que o TMB
+  const safeCalories = Math.max(bmr, targetCalories);
 
   return {
     bmi,
     bmiLabel,
     bmr,
-    dailyCalories,
+    tdee,
+    targetCalories,
+    safeCalories,
   };
 }
