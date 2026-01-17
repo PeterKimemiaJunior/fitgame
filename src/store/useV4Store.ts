@@ -1,19 +1,31 @@
+// src/store/useV4Store.ts
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type { HealthMetrics } from '../domain/health/metrics'; // Importando tipo de métricas
 
 export interface V4DailyRecord {
   activityDone: boolean;
   nutritionDone: boolean;
-  waterIntake: number; // ml
-  weightLogged: number | null; // kg
+  waterIntake: number; 
+  weightLogged: number | null; 
 }
 
 interface V4State {
+  // Progresso Diário (Existente)
   dailyProgress: Record<string, V4DailyRecord>;
+  
+  // NOVO: Métricas de Perfil Calculadas (TMB, TDEE)
+  profileMetrics: HealthMetrics | null;
+
+  // Ações Diárias
   toggleActivity: (date: string) => void;
   toggleNutrition: (date: string) => void;
   addWater: (date: string) => void;
   logWeight: (date: string, weight: number) => void;
+  
+  // Ações de Perfil
+  setProfileMetrics: (metrics: HealthMetrics) => void;
+
   resetProgress: () => void;
   resetAllData: () => void;
 }
@@ -22,6 +34,7 @@ export const useV4Store = create<V4State>()(
   persist(
     (set) => ({
       dailyProgress: {},
+      profileMetrics: null, // Estado inicial
       
       toggleActivity: (date) => {
         set((state) => {
@@ -47,7 +60,6 @@ export const useV4Store = create<V4State>()(
         });
       },
 
-      // NOVO: Adiciona 250ml de água
       addWater: (date) => {
         set((state) => {
           const current = state.dailyProgress[date] || { activityDone: false, nutritionDone: false, waterIntake: 0, weightLogged: null };
@@ -60,7 +72,6 @@ export const useV4Store = create<V4State>()(
         });
       },
 
-      // NOVO: Registra peso (sobrescreve se já existir)
       logWeight: (date, weight) => {
         set((state) => {
           const current = state.dailyProgress[date] || { activityDone: false, nutritionDone: false, waterIntake: 0, weightLogged: null };
@@ -73,10 +84,13 @@ export const useV4Store = create<V4State>()(
         });
       },
 
+      // NOVO: Setter para métricas calculadas
+      setProfileMetrics: (metrics) => set({ profileMetrics: metrics }),
+
       resetProgress: () => set({ dailyProgress: {} }),
       
       resetAllData: () => {
-        set({ dailyProgress: {} });
+        set({ dailyProgress: {}, profileMetrics: null });
         localStorage.removeItem('fitgame-user');
         localStorage.removeItem('fitgame-v4-progress');
         window.location.reload();

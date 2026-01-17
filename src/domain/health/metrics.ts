@@ -1,10 +1,13 @@
+// src/domain/health/metrics.ts
+import type { ActivityLevel, Goal } from '../../types'; // Importando os tipos atualizados
+
 export interface HealthMetrics {
   bmi: number;
   bmiLabel: string;
   bmr: number;
-  tdee: number; // Total Daily Energy Expenditure (TMB + Atividade)
+  tdee: number; // Total Daily Energy Expenditure
   targetCalories: number;
-  safeCalories: number; // Limite inferior seguro
+  safeCalories: number;
 }
 
 export function calculateBMI(weight: number, heightCm: number): number {
@@ -43,17 +46,18 @@ export function calculateHealthMetrics(
   weight: number,
   heightCm: number,
   gender: 'male' | 'female' | 'other',
-  activityLevel: 'sedentary' | 'lightly_active' | 'moderately_active',
-  goal: 'maintain' | 'loss_moderate' | 'loss_aggressive'
+  activityLevel: ActivityLevel, // Agora aceita 'very_active'
+  goal: Goal // Agora aceita 'gain_muscle'
 ): HealthMetrics {
   const bmi = calculateBMI(weight, heightCm);
   const bmiLabel = getBMILabel(bmi);
   const bmr = calculateBMR(age, weight, heightCm, gender);
 
-  // 1. Fator de Atividade (TDEE Multiplier)
-  let activityMultiplier = 1.2; // Base sedentário
+  // 1. Fator de Atividade
+  let activityMultiplier = 1.2;
   if (activityLevel === 'lightly_active') activityMultiplier = 1.375;
   if (activityLevel === 'moderately_active') activityMultiplier = 1.55;
+  if (activityLevel === 'very_active') activityMultiplier = 1.725; // NOVO
 
   const tdee = Math.round(bmr * activityMultiplier);
 
@@ -61,11 +65,12 @@ export function calculateHealthMetrics(
   let deficit = 0;
   if (goal === 'loss_moderate') deficit = 500;
   if (goal === 'loss_aggressive') deficit = 700;
+  if (goal === 'gain_muscle') deficit = -300; // Superávit (valores negativos aqui somam)
   if (goal === 'maintain') deficit = 0;
 
   // 3. Cálculo da Meta e Limite Seguro
-  const rawTarget = tdee - deficit;
-  const targetCalories = Math.max(1000, Math.round(rawTarget)); // Mínimo absoluto de 1000
+  const rawTarget = tdee - deficit; 
+  const targetCalories = Math.max(1000, Math.round(rawTarget));
   
   // Regra de Ouro: Não comer menos que o TMB
   const safeCalories = Math.max(bmr, targetCalories);

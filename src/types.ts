@@ -1,15 +1,32 @@
-export type ActivityLevel = 'sedentary' | 'lightly_active' | 'moderately_active';
-export type Goal = 'maintain' | 'loss_moderate' | 'loss_aggressive';
+// src/types.ts
+
+// --- 1. Biometria & Perfil ---
+
+export type Gender = 'male' | 'female' | 'other';
+
+export type ActivityLevel = 
+  | 'sedentary' 
+  | 'lightly_active' 
+  | 'moderately_active' 
+  | 'very_active'; // ADICIONADO
+
+export type Goal = 
+  | 'maintain' 
+  | 'loss_moderate' 
+  | 'loss_aggressive'
+  | 'gain_muscle'; // ADICIONADO
 
 export interface User {
   name: string;
   age: number;
   weight: number; // em kg
   height: number; // em cm
-  gender: 'male' | 'female' | 'other';
-  activityLevel: ActivityLevel; // NOVO
-  goal: Goal; // NOVO
+  gender: Gender;
+  activityLevel: ActivityLevel;
+  goal: Goal;
 }
+
+// --- 2. Hábitos Diários ---
 
 export interface Habit {
   id: string;

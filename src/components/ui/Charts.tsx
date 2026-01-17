@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -24,13 +25,12 @@ ChartJS.register(
 
 interface SimpleLineChartProps {
   labels: string[];
-  data: number[];
+  // CORREÇÃO: Permite null para que o gráfico pare a linha em dias sem dados
+  data: (number | null)[]; 
   color?: string;
 }
 
 export function SimpleLineChart({ labels, data, color = '#10b981' }: SimpleLineChartProps) {
-  // SOLUÇÃO: Desabilitando a regra eslint para esta linha específica
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -40,8 +40,11 @@ export function SimpleLineChart({ labels, data, color = '#10b981' }: SimpleLineC
         mode: 'index' as const,
         intersect: false,
         callbacks: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          label: (context: any) => `${context.parsed.y} pts`,
+          // Se o valor for null, mostra "Sem registro", senão mostra o valor
+          label: (context: any) => {
+            if (context.parsed.y === null) return 'Sem registro';
+            return `${context.parsed.y} pts`;
+          },
         },
       },
     },
@@ -64,6 +67,8 @@ export function SimpleLineChart({ labels, data, color = '#10b981' }: SimpleLineC
       line: {
         tension: 0.4,
         borderWidth: 2,
+        // Propriedade para garantir que ChartJS pare a linha em valores nulos
+        spanGaps: false, 
       },
       point: {
         radius: 3,
